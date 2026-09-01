@@ -1,0 +1,344 @@
+import { wardDisplayName } from "../utils/wardStorage";
+
+const API_BASE = import.meta.env.VITE_GDM_API ?? "";
+
+export const GDM_FLOORPLAN_URL = `${API_BASE}/api/gdm/floorplan.png`;
+
+export async function fetchGdmStatus() {
+  const response = await fetch(`${API_BASE}/api/gdm/status`);
+  if (!response.ok) {
+    throw new Error(`gdm status failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchGdmRooms() {
+  const response = await fetch(`${API_BASE}/api/gdm/rooms`);
+  if (!response.ok) {
+    throw new Error(`gdm rooms failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchGdmRobotPose() {
+  const response = await fetch(`${API_BASE}/api/gdm/robot/pose`);
+  if (!response.ok) {
+    throw new Error(`gdm pose failed (${response.status})`);
+  }
+  return response.json();
+}
+
+/** polygon centroid → map-normalized percent (0–100) */
+export function roomsToWards(roomsPayload) {
+  const rooms = roomsPayload?.rooms ?? [];
+  const [imgW, imgH] = roomsPayload?.image_size ?? [0, 0];
+
+  if (!imgW || !imgH || rooms.length === 0) {
+    return [];
+  }
+
+  return rooms.map((room, index) => {
+    const poly = room.polygon_px ?? [];
+    const cx =
+      poly.reduce((sum, point) => sum + point[0], 0) / Math.max(poly.length, 1);
+    const cy =
+      poly.reduce((sum, point) => sum + point[1], 0) / Math.max(poly.length, 1);
+
+    return {
+      id: room.id || `gdm-room-${index + 1}`,
+      name: wardDisplayName({
+        id: room.id || `gdm-room-${index + 1}`,
+        name: room.name || `방 ${index + 1}`,
+      }),
+      x: Number(((cx / imgW) * 100).toFixed(1)),
+      y: Number(((cy / imgH) * 100).toFixed(1)),
+      source: "gdm",
+      sensorId: room.sensor_id ?? room.id ?? null,
+      targetScent: room.target_scent ?? null,
+      polygon: poly.map(([px, py]) => [
+        Number(((px / imgW) * 100).toFixed(2)),
+        Number(((py / imgH) * 100).toFixed(2)),
+      ]),
+    };
+  });
+}
+
+export function computeContainLayout(containerW, containerH, naturalW, naturalH) {
+  if (!containerW || !containerH || !naturalW || !naturalH) {
+    return null;
+  }
+
+  const scale = Math.min(containerW / naturalW, containerH / naturalH);
+  const width = naturalW * scale;
+  const height = naturalH * scale;
+
+  return {
+    offsetX: (containerW - width) / 2,
+    offsetY: (containerH - height) / 2,
+    width,
+    height,
+    naturalW,
+    naturalH,
+    containerW,
+    containerH,
+  };
+}
+
+/** map % → container % (accounts for object-fit: contain letterboxing) */
+export function mapPercentToContainer(xMap, yMap, layout) {
+  if (!layout) {
+    return { x: xMap, y: yMap };
+  }
+
+  const xPx = layout.offsetX + (xMap / 100) * layout.width;
+  const yPx = layout.offsetY + (yMap / 100) * layout.height;
+
+  return {
+    x: (xPx / layout.containerW) * 100,
+    y: (yPx / layout.containerH) * 100,
+  };
+}
+
+/** container pointer → map % */
+export function containerPointToMapPercent(clientX, clientY, rect, layout) {
+  if (!layout) {
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+    return {
+      x: Math.min(99.5, Math.max(0.5, x)),
+      y: Math.min(99.5, Math.max(0.5, y)),
+    };
+  }
+
+  const localX = clientX - rect.left - layout.offsetX;
+  const localY = clientY - rect.top - layout.offsetY;
+
+  if (localX < 0 || localY < 0 || localX > layout.width || localY > layout.height) {
+    return null;
+  }
+
+  return {
+    x: Math.min(99.5, Math.max(0.5, (localX / layout.width) * 100)),
+    y: Math.min(99.5, Math.max(0.5, (localY / layout.height) * 100)),
+  };
+}
+
+/** GDM pose x_px/y_px or amcl x_m/y_m → map % */
+export function poseToMapPercent(pose, naturalW, naturalH, mapMeta = null) {
+  if (pose?.x_px != null && pose?.y_px != null && naturalW && naturalH) {
+    return {
+      x: Math.min(98, Math.max(2, (pose.x_px / naturalW) * 100)),
+      y: Math.min(98, Math.max(2, (pose.y_px / naturalH) * 100)),
+      yaw: pose.yaw ?? 0,
+      live: Boolean(pose.live),
+      source: pose.source ?? "gdm",
+    };
+  }
+
+  if (pose?.x_m != null && pose?.y_m != null && mapMeta) {
+    const mapped = worldMetersToMapPercent(pose.x_m, pose.y_m, mapMeta);
+    if (!mapped) return null;
+    return {
+      ...mapped,
+      yaw: pose.yaw ?? 0,
+      live: Boolean(pose.live),
+      source: pose.source ?? "amcl",
+    };
+  }
+
+  return null;
+}
+
+/** map % → world meters (GDM / OccupancyGrid convention) */
+export function mapPercentToWorldMeters(xPercent, yPercent, mapMeta) {
+  const [imgW, imgH] = mapMeta?.image_size ?? [];
+  const resolution = mapMeta?.resolution;
+  const origin = mapMeta?.origin;
+
+  if (
+    !imgW ||
+    !imgH ||
+    resolution == null ||
+    !Array.isArray(origin) ||
+    origin.length < 2
+  ) {
+    return null;
+  }
+
+  const px = (Number(xPercent) / 100) * imgW;
+  const py = (Number(yPercent) / 100) * imgH;
+  const x = Number(origin[0]) + px * Number(resolution);
+  const y = Number(origin[1]) + (imgH - py) * Number(resolution);
+
+  return { x, y, px, py };
+}
+
+/** Screen-down map % drag → ROS map yaw (CCW from +x). */
+export function mapDragToYaw(from, to, minPercent = 1.2) {
+  const dx = Number(to.x) - Number(from.x);
+  const dy = Number(to.y) - Number(from.y);
+  if (Math.hypot(dx, dy) < minPercent) return 0;
+  return Math.atan2(-dy, dx);
+}
+
+/** ROS yaw (rad, CCW from +x) → CSS rotate deg (clockwise from +x). */
+export function yawToCssDeg(yaw) {
+  return (-Number(yaw || 0) * 180) / Math.PI;
+}
+
+export function yawToDisplayDeg(yaw) {
+  const deg = (Number(yaw || 0) * 180) / Math.PI;
+  return Math.round((((deg % 360) + 360) % 360) * 10) / 10;
+}
+
+export function normalizeYaw(yaw) {
+  let value = Number(yaw) || 0;
+  while (value > Math.PI) value -= Math.PI * 2;
+  while (value <= -Math.PI) value += Math.PI * 2;
+  return value;
+}
+
+/** 현재 위치에서 목표를 바라보는 ROS yaw. 너무 가까우면 현재 방향 유지. */
+export function yawTowardWorld(fromX, fromY, fromYaw, toX, toY) {
+  const dx = Number(toX) - Number(fromX);
+  const dy = Number(toY) - Number(fromY);
+  if (!Number.isFinite(dx) || !Number.isFinite(dy) || Math.hypot(dx, dy) < 0.08) {
+    return Number(fromYaw) || 0;
+  }
+  return Math.atan2(dy, dx);
+}
+
+export function yawFromRobotToMapPercent(
+  pose,
+  xPercent,
+  yPercent,
+  mapMeta,
+  { reverse = false } = {},
+) {
+  const goal = mapPercentToWorldMeters(xPercent, yPercent, mapMeta);
+  if (!goal || pose?.x_m == null || pose?.y_m == null) {
+    return reverse ? Math.PI : 0;
+  }
+
+  let yaw = yawTowardWorld(pose.x_m, pose.y_m, pose.yaw, goal.x, goal.y);
+  if (reverse) {
+    yaw += Math.PI;
+  }
+  return normalizeYaw(yaw);
+}
+
+/** world meters → map % (inverse of mapPercentToWorldMeters) */
+export function worldMetersToMapPercent(xM, yM, mapMeta) {
+  const [imgW, imgH] = mapMeta?.image_size ?? [];
+  const resolution = mapMeta?.resolution;
+  const origin = mapMeta?.origin;
+
+  if (
+    xM == null ||
+    yM == null ||
+    !imgW ||
+    !imgH ||
+    resolution == null ||
+    !Array.isArray(origin) ||
+    origin.length < 2 ||
+    Number(resolution) === 0
+  ) {
+    return null;
+  }
+
+  const px = (Number(xM) - Number(origin[0])) / Number(resolution);
+  const pyFromBottom = (Number(yM) - Number(origin[1])) / Number(resolution);
+  const py = imgH - pyFromBottom;
+
+  return {
+    x: Math.min(99.5, Math.max(0.5, (px / imgW) * 100)),
+    y: Math.min(99.5, Math.max(0.5, (py / imgH) * 100)),
+  };
+}
+
+export async function sendNavGoal({ x, y, yaw = 0, frame_id = "map" }) {
+  const response = await fetch(`${API_BASE}/api/nav/goal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ x, y, yaw, frame_id }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error || `nav goal failed (${response.status})`);
+  }
+  return payload;
+}
+
+export async function cancelNavGoal() {
+  try {
+    const response = await fetch(`${API_BASE}/api/nav/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const payload = await response.json().catch(() => ({}));
+    return { ok: true, ...payload };
+  } catch {
+    return { ok: true };
+  }
+}
+
+/** AMCL 2D Pose Estimate → /initialpose */
+async function postInitialPose(body) {
+  const response = await fetch(`${API_BASE}/api/nav/initialpose`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  return { response, payload };
+}
+
+export async function sendInitialPose({ x, y, yaw = 0, frame_id = "map" }) {
+  const body = { x, y, yaw, frame_id };
+  let { response, payload } = await postInitialPose(body);
+
+  if ((!response.ok || payload?.ok === false) && response.status >= 500) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    ({ response, payload } = await postInitialPose(body));
+  }
+
+  if (!response.ok || payload?.ok === false) {
+    const detail = payload?.error || `HTTP ${response.status}`;
+    throw new Error(`위치 추정을 보내지 못했습니다 (${detail})`);
+  }
+  return payload;
+}
+
+export async function fetchNavPose() {
+  const response = await fetch(`${API_BASE}/api/nav/pose`);
+  if (!response.ok) {
+    throw new Error(`nav pose failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNavStatus() {
+  const response = await fetch(`${API_BASE}/api/nav/status`);
+  if (!response.ok) {
+    throw new Error(`nav status failed (${response.status})`);
+  }
+  return response.json();
+}
+
+/** std_msgs/Empty → /diffusion_complete */
+export async function publishDiffusionComplete() {
+  const response = await fetch(`${API_BASE}/api/nav/diffusion_complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.ok) {
+    throw new Error(
+      payload?.error || `diffusion_complete failed (${response.status})`
+    );
+  }
+  return payload;
+}

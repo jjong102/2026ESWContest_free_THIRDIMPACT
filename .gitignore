@@ -1,0 +1,105 @@
+# =====================================================
+#  third_impact_capstone
+#    slam_ros/           ROS 2 (colcon) workspace
+#    air-scent-dashboard/ Node + Vite dashboard
+# =====================================================
+
+# -----------------------------------------------------
+#  ROS 2 / colcon  (slam_ros)
+# -----------------------------------------------------
+build/
+install/
+log/
+logs/
+.colcon/
+COLCON_IGNORE
+AMENT_IGNORE
+
+# rosbag / recorded data
+*.bag
+*.db3
+*.mcap
+rosbag2_*/
+
+# nav debug dumps
+nav_debug_*.csv
+
+# -----------------------------------------------------
+#  Node / Vite  (air-scent-dashboard)
+# -----------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+.npm/
+.pnpm-store/
+*.tsbuildinfo
+
+# npm/yarn/pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# runtime state written by the server
+server/.device-state.json
+server/.device-state.json.tmp
+
+# -----------------------------------------------------
+#  Secrets  (keep .env.example committed)
+# -----------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# -----------------------------------------------------
+#  Python
+# -----------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.venv/
+venv/
+
+# -----------------------------------------------------
+#  C / C++ build artifacts
+# -----------------------------------------------------
+*.o
+*.so
+*.a
+*.d
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# -----------------------------------------------------
+#  Editor / IDE
+# -----------------------------------------------------
+.vscode/
+.idea/
+.cursor/
+.clangd/
+.cache/
+*.swp
+*.sw?
+*~
+
+# -----------------------------------------------------
+#  OS
+# -----------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------------------------------
+#  Misc
+# -----------------------------------------------------
+*.log
+*.gpg

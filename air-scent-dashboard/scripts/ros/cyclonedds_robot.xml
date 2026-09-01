@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 다른 Jetson(로봇, 192.168.10.2)용 — eth 이름은 그쪽에 맞게 바꾸세요 -->
+<CycloneDDS>
+  <Domain id="any">
+    <General>
+      <Interfaces>
+        <!-- 예: eth0 / enP8p1s0 등, 상대 Jetson에서 ip -br addr 로 확인 -->
+        <NetworkInterface address="192.168.10.2"/>
+      </Interfaces>
+      <AllowMulticast>false</AllowMulticast>
+    </General>
+    <Discovery>
+      <ParticipantIndex>auto</ParticipantIndex>
+      <Peers>
+        <Peer address="192.168.10.1"/>
+      </Peers>
+    </Discovery>
+  </Domain>
+</CycloneDDS>

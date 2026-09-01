@@ -1,0 +1,60 @@
+.bottom-nav {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 10px;
+
+  height: 72px;
+  padding: 8px;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px);
+}
+
+.bottom-nav-button {
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  min-height: 56px;
+  border-radius: 16px;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.bottom-nav-button:active {
+  transform: scale(0.96);
+}
+
+.bottom-nav-button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.28);
+}
+
+.bottom-nav-button span {
+  line-height: 1;
+}

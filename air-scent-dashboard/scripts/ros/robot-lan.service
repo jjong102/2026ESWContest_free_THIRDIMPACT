@@ -1,0 +1,13 @@
+[Unit]
+Description=Robot LAN static IP (enP8p1s0 192.168.10.1/24)
+After=NetworkManager.service network-pre.target
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/ensure-robot-lan.sh
+ExecStartPost=/bin/sleep 1
+
+[Install]
+WantedBy=multi-user.target

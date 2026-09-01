@@ -1,0 +1,14 @@
+[Unit]
+Description=Jetson identity (hostname / whoami / 10.96 IP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=moonshot
+ExecStart=/usr/bin/python3 /usr/local/sbin/jetson_identity.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

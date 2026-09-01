@@ -1,0 +1,26 @@
+.section-label {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-sub);
+}
+
+.blue-soft {
+  color: var(--blue);
+  background: #eff6ff;
+}
+
+.purple-soft {
+  color: var(--purple);
+  background: #f5f3ff;
+}
+
+.orange-soft {
+  color: var(--orange);
+  background: #fffbeb;
+}
+
+.green-soft {
+  color: var(--green);
+  background: #f0fdf4;
+}

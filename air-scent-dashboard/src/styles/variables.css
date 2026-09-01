@@ -1,0 +1,19 @@
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text-main: #334155;
+  --text-sub: #64748b;
+  --border: #e2e8f0;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  --orange: #f59e0b;
+  --green: #22c55e;
+  --red: #ef4444;
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --shadow-card: 0 8px 24px rgba(51, 65, 85, 0.08);
+
+  font-family: Pretendard, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+}

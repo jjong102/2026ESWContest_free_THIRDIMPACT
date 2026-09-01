@@ -1,0 +1,350 @@
+.fragrance-page {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  min-height: 0;
+}
+
+.fragrance-hero-card,
+.fragrance-stat-card,
+.fragrance-action-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.fragrance-hero-card {
+  padding: 18px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(139, 92, 246, 0.12), transparent 34%),
+    radial-gradient(circle at 8% 88%, rgba(59, 130, 246, 0.1), transparent 30%),
+    var(--card);
+}
+
+.fragrance-hero-card.inactive {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(100, 116, 139, 0.08), transparent 34%),
+    var(--card);
+}
+
+.fragrance-hero-top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.fragrance-icon-large {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--purple);
+  background:
+    radial-gradient(circle at 30% 25%, #ffffff 0, transparent 32%),
+    linear-gradient(135deg, #ede9fe, #dbeafe);
+  border-radius: 22px;
+  box-shadow: 0 10px 24px rgba(139, 92, 246, 0.16);
+}
+
+.fragrance-hero-card.inactive .fragrance-icon-large {
+  color: var(--text-sub);
+  background: #f1f5f9;
+  box-shadow: none;
+}
+
+.fragrance-hero-text {
+  min-width: 0;
+}
+
+.fragrance-hero-text .section-label {
+  margin-bottom: 4px;
+}
+
+.fragrance-hero-text h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 950;
+  letter-spacing: -0.8px;
+  line-height: 1.1;
+  color: var(--text-main);
+}
+
+.fragrance-status-badge {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fragrance-status-badge.on {
+  color: #6d28d9;
+  background: #f5f3ff;
+}
+
+.fragrance-status-badge.off {
+  color: var(--text-sub);
+  background: #f1f5f9;
+}
+
+.toggle-button {
+  min-width: 72px;
+  height: 52px;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.toggle-button:active {
+  transform: scale(0.98);
+}
+
+.toggle-button.on {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.28);
+}
+
+.toggle-button.off {
+  color: var(--text-sub);
+  background: #f1f5f9;
+}
+
+.toggle-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.fragrance-link-badge {
+  display: inline-flex;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #b45309;
+  background: #fff7ed;
+}
+
+.fragrance-bottom-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fragrance-controls-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fragrance-controls-panel .fragrance-stat-card {
+  flex-shrink: 0;
+}
+
+.fragrance-stat-card {
+  min-height: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fragrance-stat-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fragrance-stat-head .section-label {
+  margin: 0;
+}
+
+.fragrance-stat-head strong {
+  font-size: 22px;
+  font-weight: 950;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.level-control {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  gap: 10px;
+  align-items: center;
+}
+
+.level-control button {
+  height: 44px;
+  border: none;
+  border-radius: 14px;
+  color: var(--purple);
+  background: #f5f3ff;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s ease;
+}
+
+.level-control button:active {
+  transform: scale(0.96);
+}
+
+.level-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 8px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+}
+
+.level-step {
+  width: 100%;
+  max-width: 36px;
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  transition: background 0.12s ease;
+}
+
+.level-step.active {
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+}
+
+.fragrance-controls-panel .fragrance-action-card {
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 14px;
+}
+
+.fragrance-action-card.ai {
+  background:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(139, 92, 246, 0.06)),
+    var(--card);
+}
+
+.fragrance-action-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s ease;
+}
+
+.fragrance-action-card:active {
+  transform: scale(0.98);
+}
+
+.fragrance-action-card.blend {
+  background:
+    linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.06)),
+    var(--card);
+}
+
+.fragrance-action-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.fragrance-action-card strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.fragrance-action-card span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.remaining-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.remaining-card .section-label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.remaining-bars {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.remaining-bar-item {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  justify-items: center;
+}
+
+.remaining-bar-item strong {
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.remaining-bar-track {
+  width: 100%;
+  max-width: 48px;
+  height: 100%;
+  min-height: 0;
+  border-radius: 14px;
+  background: #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.remaining-bar-fill {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 0 0 14px 14px;
+  transition: height 0.15s ease;
+}
+
+.remaining-bar-item span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-sub);
+}

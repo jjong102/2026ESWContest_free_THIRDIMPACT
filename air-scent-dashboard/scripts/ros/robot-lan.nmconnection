@@ -1,0 +1,17 @@
+[connection]
+id=Robot LAN
+uuid=7c3b1e90-4a2f-4d8c-9e11-a1b2c3d4e5f6
+type=ethernet
+interface-name=enP8p1s0
+autoconnect=true
+autoconnect-priority=200
+
+[ethernet]
+
+[ipv4]
+method=manual
+address1=192.168.10.1/24
+never-default=true
+
+[ipv6]
+method=disabled

@@ -1,0 +1,7 @@
+image: ff_ekf_3f.pgm
+mode: trinary
+resolution: 0.03
+origin: [0.21999999999999997, -6.109999999999999, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.25

@@ -1,0 +1,590 @@
+.home-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.home-main-split {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.22fr);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.home-ward-column {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  overflow: hidden;
+}
+
+.home-outdoor-hero,
+.home-ward-card,
+.home-map-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+/* —— Outdoor hero —— */
+.home-outdoor-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  min-width: 0;
+  flex-shrink: 0;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(20, 184, 166, 0.16), transparent 40%),
+    radial-gradient(circle at 10% 88%, rgba(59, 130, 246, 0.12), transparent 36%),
+    var(--card);
+}
+
+.home-outdoor-hero.outdoor-moderate {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(245, 158, 11, 0.16), transparent 40%),
+    radial-gradient(circle at 10% 88%, rgba(59, 130, 246, 0.08), transparent 36%),
+    var(--card);
+}
+
+.home-outdoor-hero.outdoor-bad {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(249, 115, 22, 0.18), transparent 40%),
+    radial-gradient(circle at 10% 88%, rgba(239, 68, 68, 0.1), transparent 36%),
+    var(--card);
+}
+
+.home-outdoor-hero.outdoor-very-bad {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(239, 68, 68, 0.2), transparent 40%),
+    radial-gradient(circle at 10% 88%, rgba(127, 29, 29, 0.1), transparent 36%),
+    var(--card);
+}
+
+.home-outdoor-hero.outdoor-unknown {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(148, 163, 184, 0.14), transparent 40%),
+    var(--card);
+}
+
+.home-outdoor-main {
+  min-width: 0;
+}
+
+.home-outdoor-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 950;
+  letter-spacing: -0.8px;
+  line-height: 1.05;
+  background: linear-gradient(135deg, #14b8a6, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-outdoor-hero.outdoor-moderate .home-outdoor-title {
+  background: linear-gradient(135deg, #d97706, #ea580c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-outdoor-hero.outdoor-bad .home-outdoor-title,
+.home-outdoor-hero.outdoor-very-bad .home-outdoor-title {
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-outdoor-hero.outdoor-unknown .home-outdoor-title {
+  background: none;
+  -webkit-text-fill-color: var(--text-sub);
+  color: var(--text-sub);
+}
+
+.home-outdoor-meta {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-sub);
+  line-height: 1.35;
+}
+
+.home-outdoor-aqi {
+  flex-shrink: 0;
+  min-width: 88px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.home-outdoor-aqi strong {
+  font-size: 34px;
+  font-weight: 950;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: #0f766e;
+}
+
+.home-outdoor-hero.outdoor-moderate .home-outdoor-aqi strong {
+  color: #c2410c;
+}
+
+.home-outdoor-hero.outdoor-bad .home-outdoor-aqi strong,
+.home-outdoor-hero.outdoor-very-bad .home-outdoor-aqi strong {
+  color: #dc2626;
+}
+
+.home-outdoor-hero.outdoor-unknown .home-outdoor-aqi strong {
+  color: var(--text-sub);
+}
+
+.home-outdoor-aqi span {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text-sub);
+  letter-spacing: 0.4px;
+}
+
+.home-hero-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.home-hero-label-row .section-label {
+  margin: 0;
+  font-size: 14px;
+}
+
+.home-hero-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-sub);
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid var(--border);
+}
+
+/* —— Ward cards (left column stack) —— */
+.home-ward-card {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 16%, var(--scent-soft, transparent), transparent 58%),
+    var(--card);
+}
+
+.home-ward-card:not(.empty) {
+  cursor: pointer;
+}
+
+.home-ward-card::before {
+  content: "";
+  position: absolute;
+  right: 8%;
+  top: 18%;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--scent-glow, transparent);
+  filter: blur(16px);
+  opacity: 0.72;
+  animation: home-scent-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+.home-ward-card.empty {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-sub);
+  background: #f8fafc;
+  border-style: dashed;
+  gap: 6px;
+  padding: 12px 14px;
+}
+
+.home-ward-card.empty strong {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.home-ward-card.empty em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 750;
+  color: #94a3b8;
+}
+
+@keyframes home-scent-pulse {
+  0% {
+    transform: scale(0.78);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0.18;
+  }
+  100% {
+    transform: scale(0.78);
+    opacity: 0.7;
+  }
+}
+
+.home-ward-card.is-going {
+  border-color: #14b8a6;
+}
+
+.home-ward-card-hit {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.home-ward-card-hit:disabled {
+  cursor: not-allowed;
+}
+
+.home-ward-card-hit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.home-ward-mission-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.home-ward-card.is-going .home-ward-mission-hint {
+  color: #b91c1c;
+}
+
+.home-ward-card-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.home-ward-card-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--text-sub);
+}
+
+.home-ward-card-name svg {
+  flex-shrink: 0;
+  color: #d97706;
+}
+
+.home-ward-card.empty svg {
+  color: #d97706;
+}
+
+.home-ward-fragrance-chip {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.home-ward-fragrance-chip.on,
+.home-ward-fragrance-chip.diffusing {
+  color: #6d28d9;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.home-ward-fragrance-chip.complete {
+  color: #b45309;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.home-ward-fragrance-chip.going {
+  color: #0f766e;
+  background: #f0fdfa;
+  border-color: #99f6e4;
+}
+
+.home-ward-card-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.home-ward-card-emoji {
+  font-size: 34px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.home-ward-card-text {
+  min-width: 0;
+}
+
+.home-ward-card-text strong {
+  display: block;
+  font-size: 20px;
+  font-weight: 950;
+  color: var(--scent-color, var(--text-main));
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+}
+
+.home-ward-card-text em {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-ward-fragrance-line {
+  margin: 8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 900;
+  color: #6d28d9;
+  line-height: 1.1;
+}
+
+.home-ward-fragrance-line span {
+  font-weight: 750;
+  color: var(--text-sub);
+}
+
+.home-map-card {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(20, 184, 166, 0.08), transparent 42%),
+    radial-gradient(circle at 12% 92%, rgba(59, 130, 246, 0.06), transparent 40%),
+    var(--card);
+}
+
+.home-map-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.home-map-go {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 24;
+  pointer-events: none;
+}
+
+.home-go-btn {
+  pointer-events: auto;
+  width: 100%;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  background: linear-gradient(135deg, #0d9488, #7c3aed);
+  box-shadow: 0 10px 24px rgba(124, 58, 237, 0.28);
+}
+
+.home-go-btn.is-stop {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  box-shadow: 0 10px 24px rgba(185, 28, 28, 0.28);
+}
+
+.home-go-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.home-go-btn.busy {
+  opacity: 0.85;
+}
+
+.home-go-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.home-ward-card.is-selected {
+  border-color: #c4b5fd;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.16);
+}
+
+.home-map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.home-map-head .section-label {
+  margin: 0;
+  font-size: 14px;
+}
+
+.home-map-card .home-gdm-map,
+.home-map-card .slam-map {
+  min-height: 0;
+  height: 100%;
+  margin: 0 8px 8px;
+  border-radius: 12px;
+  cursor: default;
+  touch-action: manipulation;
+}
+
+.home-map-card .slam-ward {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.home-map-card .slam-rooms-svg {
+  pointer-events: auto;
+}
+
+.home-map-card .slam-rooms-svg * {
+  pointer-events: none;
+}
+
+.home-map-card .slam-room-poly.clickable {
+  pointer-events: fill;
+  fill: rgba(37, 99, 235, 0.01);
+  cursor: pointer;
+}
+
+.home-map-card .slam-ward-label {
+  font-size: 10px;
+  max-width: 90px;
+}
+
+.home-map-card .slam-ward-emoji {
+  font-size: 16px;
+}
+
+.home-map-card .slam-ward-pin-head {
+  width: 34px;
+  height: 34px;
+}
+
+.home-map-card .slam-robot {
+  transform-origin: center;
+  scale: 0.9;
+}
+
+@media (max-height: 920px) {
+  .home-page {
+    gap: 8px;
+  }
+
+  .home-main-split,
+  .home-ward-column {
+    gap: 8px;
+  }
+
+  .home-outdoor-hero {
+    padding: 12px 14px;
+  }
+
+  .home-outdoor-title {
+    font-size: 26px;
+  }
+
+  .home-ward-card.empty {
+    padding: 10px 12px;
+  }
+
+  .home-ward-card-hit {
+    padding: 10px 12px;
+  }
+
+  .home-ward-card-text strong {
+    font-size: 17px;
+  }
+
+  .home-map-head {
+    padding: 6px 10px;
+  }
+}

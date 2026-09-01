@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Room Editor</title>
+<style>
+  body { margin: 0; font-family: sans-serif; display: flex; height: 100vh; background: #1e1e1e; color: #eee; }
+  #canvasWrap { flex: 1; overflow: auto; position: relative; background: #2a2a2a; }
+  canvas { display: block; cursor: crosshair; }
+  #panel { width: 300px; padding: 16px; background: #252525; overflow-y: auto; border-left: 1px solid #444; }
+  h2 { font-size: 15px; margin: 0 0 12px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  button { background: #3a3a3a; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 12px; }
+  button:hover { background: #4a4a4a; }
+  button.primary { background: #2f6feb; border-color: #2f6feb; }
+  button.danger { background: #6e2b2b; border-color: #8a3a3a; }
+  label { display: block; font-size: 12px; margin: 10px 0 4px; color: #aaa; }
+  input, select { width: 100%; box-sizing: border-box; background: #1e1e1e; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 6px; font-size: 13px; }
+  #roomList { list-style: none; padding: 0; margin: 0 0 12px; max-height: 160px; overflow-y: auto; border: 1px solid #444; border-radius: 4px; }
+  #roomList li { padding: 6px 8px; font-size: 12px; cursor: pointer; border-bottom: 1px solid #333; }
+  #roomList li.selected { background: #2f6feb; }
+  #roomList li:hover { background: #333; }
+  #status { font-size: 12px; color: #8f8; min-height: 16px; margin-top: 8px; }
+  #hint { font-size: 11px; color: #999; line-height: 1.5; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div id="canvasWrap"><canvas id="canvas"></canvas></div>
+<div id="panel">
+  <h2>방 목록</h2>
+  <ul id="roomList"></ul>
+  <div class="toolbar">
+    <button id="btnDraw">+ 새 방 그리기</button>
+    <button id="btnFinish" style="display:none">완료 (더블클릭도 가능)</button>
+    <button id="btnDelete" class="danger">선택 방 삭제</button>
+  </div>
+
+  <div id="form" style="display:none">
+    <label>이름</label>
+    <input id="fName">
+    <label>MQTT room id (와드 센서 식별자)</label>
+    <input id="fSensorId">
+    <label>목표 향 (target scent)</label>
+    <input id="fScent" placeholder="예: citrus">
+    <label>목표 농도 % 이상</label>
+    <input id="fPercent" type="number" min="0" max="100">
+  </div>
+
+  <div class="toolbar" style="margin-top:16px">
+    <button id="btnSave" class="primary">저장 (확정)</button>
+  </div>
+  <div id="status"></div>
+  <div id="hint">
+    · 정점(점)을 드래그하면 폴리곤 모양을 수정합니다.<br>
+    · 방을 클릭하면 오른쪽에서 이름/센서 id/목표 향을 편집할 수 있습니다.<br>
+    · "새 방 그리기" 후 캔버스를 클릭해 꼭짓점을 찍고, 더블클릭이나 "완료"로 마무리합니다.
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const bgImage = new Image();
+
+let mapMeta = { map: null, resolution: 1, origin: [0, 0, 0], image_size: [0, 0] };
+let rooms = [];
+let selected = -1;
+let mode = 'select'; // 'select' | 'draw'
+let drawingPoints = [];
+let dragging = null; // { roomIdx, vertexIdx }
+
+const VERTEX_R = 6;
+const colors = ['#ff9f9f', '#9fdcff', '#b5ff9f', '#ffe39f', '#d59fff', '#9fffe8'];
+
+function colorFor(idx) { return colors[idx % colors.length]; }
+
+async function load() {
+  const [confirmedRes, draftRes] = await Promise.all([
+    fetch('/api/rooms/confirmed').then(r => r.json()),
+    fetch('/api/rooms/draft').then(r => r.json()),
+  ]);
+  const source = (confirmedRes.rooms && confirmedRes.rooms.length) ? confirmedRes : draftRes;
+  mapMeta.map = source.map;
+  mapMeta.resolution = source.resolution || 1;
+  mapMeta.origin = source.origin || [0, 0, 0];
+  rooms = source.rooms || [];
+
+  bgImage.onload = () => {
+    mapMeta.image_size = [bgImage.naturalWidth, bgImage.naturalHeight];
+    canvas.width = bgImage.naturalWidth;
+    canvas.height = bgImage.naturalHeight;
+    renderRoomList();
+    draw();
+  };
+  bgImage.src = '/api/floorplan.png?ts=' + Date.now();
+}
+
+function pxToM(x, y) {
+  const h = mapMeta.image_size[1];
+  return [
+    mapMeta.origin[0] + x * mapMeta.resolution,
+    mapMeta.origin[1] + (h - y) * mapMeta.resolution,
+  ];
+}
+
+function centroidOf(poly) {
+  const n = poly.length;
+  const sx = poly.reduce((s, p) => s + p[0], 0);
+  const sy = poly.reduce((s, p) => s + p[1], 0);
+  return [sx / n, sy / n];
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bgImage, 0, 0);
+
+  rooms.forEach((room, idx) => {
+    const poly = room.polygon_px;
+    if (!poly || poly.length < 3) return;
+    ctx.beginPath();
+    poly.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+    ctx.closePath();
+    ctx.fillStyle = colorFor(idx) + (idx === selected ? '80' : '40');
+    ctx.fill();
+    ctx.strokeStyle = idx === selected ? '#2f6feb' : '#666';
+    ctx.lineWidth = idx === selected ? 2 : 1;
+    ctx.stroke();
+
+    const [cx, cy] = centroidOf(poly);
+    ctx.fillStyle = '#000';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(room.name || room.id, cx, cy);
+
+    poly.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, VERTEX_R, 0, Math.PI * 2);
+      ctx.fillStyle = '#2f6feb';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+    });
+  });
+
+  if (mode === 'draw' && drawingPoints.length) {
+    ctx.beginPath();
+    drawingPoints.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    drawingPoints.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, VERTEX_R, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffd700';
+      ctx.fill();
+    });
+  }
+}
+
+function canvasPos(evt) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return [(evt.clientX - rect.left) * scaleX, (evt.clientY - rect.top) * scaleY];
+}
+
+function pointInPoly(x, y, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    const intersect = ((yi > y) !== (yj > y)) &&
+      (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function hitVertex(x, y) {
+  for (let ri = 0; ri < rooms.length; ri++) {
+    const poly = rooms[ri].polygon_px;
+    for (let vi = 0; vi < poly.length; vi++) {
+      const [vx, vy] = poly[vi];
+      if (Math.hypot(vx - x, vy - y) <= VERTEX_R + 6) return { roomIdx: ri, vertexIdx: vi };
+    }
+  }
+  return null;
+}
+
+function hitRoom(x, y) {
+  for (let ri = rooms.length - 1; ri >= 0; ri--) {
+    if (pointInPoly(x, y, rooms[ri].polygon_px)) return ri;
+  }
+  return -1;
+}
+
+canvas.addEventListener('mousedown', (evt) => {
+  const [x, y] = canvasPos(evt);
+  if (mode === 'draw') {
+    drawingPoints.push([x, y]);
+    draw();
+    return;
+  }
+  const vhit = hitVertex(x, y);
+  if (vhit) {
+    dragging = vhit;
+    selected = vhit.roomIdx;
+    renderRoomList();
+    fillForm();
+    return;
+  }
+  const rhit = hitRoom(x, y);
+  selected = rhit;
+  renderRoomList();
+  fillForm();
+  draw();
+});
+
+canvas.addEventListener('mousemove', (evt) => {
+  if (!dragging) return;
+  const [x, y] = canvasPos(evt);
+  rooms[dragging.roomIdx].polygon_px[dragging.vertexIdx] = [x, y];
+  draw();
+});
+
+window.addEventListener('mouseup', () => { dragging = null; });
+
+canvas.addEventListener('dblclick', () => {
+  if (mode === 'draw') finishDrawing();
+});
+
+function nextRoomIndex() {
+  return rooms.length + 1;
+}
+
+function finishDrawing() {
+  if (drawingPoints.length >= 3) {
+    const idx = nextRoomIndex();
+    rooms.push({
+      id: `room_${idx}`,
+      name: `Room ${idx}`,
+      sensor_id: `room_${idx}`,
+      target_scent: null,
+      target_percent: 90,
+      polygon_px: drawingPoints.map(p => p.slice()),
+    });
+    selected = rooms.length - 1;
+    renderRoomList();
+    fillForm();
+  }
+  drawingPoints = [];
+  mode = 'select';
+  document.getElementById('btnFinish').style.display = 'none';
+  draw();
+}
+
+document.getElementById('btnDraw').onclick = () => {
+  mode = 'draw';
+  drawingPoints = [];
+  selected = -1;
+  document.getElementById('btnFinish').style.display = 'inline-block';
+  document.getElementById('form').style.display = 'none';
+};
+
+document.getElementById('btnFinish').onclick = finishDrawing;
+
+document.getElementById('btnDelete').onclick = () => {
+  if (selected < 0) return;
+  rooms.splice(selected, 1);
+  selected = -1;
+  document.getElementById('form').style.display = 'none';
+  renderRoomList();
+  draw();
+};
+
+function renderRoomList() {
+  const ul = document.getElementById('roomList');
+  ul.innerHTML = '';
+  rooms.forEach((room, idx) => {
+    const li = document.createElement('li');
+    li.textContent = room.name || room.id;
+    if (idx === selected) li.classList.add('selected');
+    li.onclick = () => { selected = idx; renderRoomList(); fillForm(); draw(); };
+    ul.appendChild(li);
+  });
+}
+
+function fillForm() {
+  const form = document.getElementById('form');
+  if (selected < 0) { form.style.display = 'none'; return; }
+  const room = rooms[selected];
+  form.style.display = 'block';
+  document.getElementById('fName').value = room.name || '';
+  document.getElementById('fSensorId').value = room.sensor_id || room.id || '';
+  document.getElementById('fScent').value = room.target_scent || '';
+  document.getElementById('fPercent').value = room.target_percent ?? 90;
+}
+
+['fName', 'fSensorId', 'fScent', 'fPercent'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    if (selected < 0) return;
+    const room = rooms[selected];
+    room.name = document.getElementById('fName').value;
+    room.sensor_id = document.getElementById('fSensorId').value;
+    room.target_scent = document.getElementById('fScent').value || null;
+    room.target_percent = Number(document.getElementById('fPercent').value);
+    renderRoomList();
+    draw();
+  });
+});
+
+document.getElementById('btnSave').onclick = async () => {
+  const payload = {
+    map: mapMeta.map,
+    resolution: mapMeta.resolution,
+    origin: mapMeta.origin,
+    image_size: mapMeta.image_size,
+    rooms: rooms.map(room => ({
+      ...room,
+      polygon_m: room.polygon_px.map(([x, y]) => pxToM(x, y).map(v => Math.round(v * 1000) / 1000)),
+      centroid_px: centroidOf(room.polygon_px),
+      centroid_m: pxToM(...centroidOf(room.polygon_px)).map(v => Math.round(v * 1000) / 1000),
+    })),
+  };
+  const res = await fetch('/api/rooms/confirm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = res.ok ? '저장되었습니다.' : '저장 실패';
+  setTimeout(() => { statusEl.textContent = ''; }, 2500);
+};
+
+load();
+</script>
+</body>
+</html>

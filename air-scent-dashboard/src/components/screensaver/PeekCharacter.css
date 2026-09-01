@@ -1,0 +1,807 @@
+.peek-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.peek-head {
+  --head: min(170vw, 150vh);
+  position: absolute;
+  left: 50%;
+  /* 약 절반 이상 보이게 올려서 세로를 더 채움 */
+  bottom: calc(var(--head) * -0.46);
+  width: var(--head);
+  height: var(--head);
+  border-radius: 50%;
+  transform: translate3d(-50%, 0, 0);
+  animation: peek-bob 5.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+.peek-stage.is-compact {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+  container-type: size;
+}
+
+.peek-stage.is-compact .peek-head {
+  /* 가로·세로 %가 달라 찌그러지던 문제 → 컨테이너 짧은 변 기준으로 정원 유지 */
+  --head: 150cqmin;
+  width: var(--head);
+  height: var(--head);
+  animation: none;
+  bottom: calc(var(--head) * -0.4);
+  transform: translate3d(-50%, 0, 0);
+}
+
+.peek-eye {
+  position: absolute;
+  top: 18.5%;
+  width: 6%;
+  height: 6%;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: calc(var(--head) * 0.002) solid rgba(15, 23, 42, 0.1);
+  box-sizing: border-box;
+  overflow: hidden;
+  transform-origin: center;
+  transition: transform 0.18s ease;
+  box-shadow: inset 0 -10% 14% rgba(15, 23, 42, 0.05);
+}
+
+.peek-eye::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 62%;
+  height: 62%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #94a3b8 0 12%, #1f2937 13% 100%);
+  transform: translate(
+    calc(-50% + var(--look-x, 0) * 1%),
+    calc(-50% + var(--look-y, 0) * 1%)
+  );
+  transition: transform 0.55s cubic-bezier(0.22, 0.8, 0.28, 1);
+  will-change: transform;
+}
+
+.peek-eye-left {
+  left: 34.5%;
+}
+
+.peek-eye-right {
+  right: 34.5%;
+}
+
+.peek-head.is-blink .peek-eye {
+  transform: scaleY(0.1);
+}
+
+.peek-head.is-blink .peek-eye::after {
+  opacity: 0;
+}
+
+/* 귀여운 척 — 볼 부풀리기 + 얼굴 진하게 + 눈 크게 */
+.peek-stage.is-cute {
+  transition: transform 0.45s ease;
+  transform: rotate(-2.8deg) scale(1.04);
+}
+
+.peek-head.is-cute {
+  filter: saturate(1.18) contrast(1.06) brightness(0.97);
+}
+
+.peek-head.is-cute .peek-eye {
+  width: 7.6%;
+  height: 7.6%;
+  top: 17.2%;
+  transition:
+    transform 0.35s ease,
+    width 0.35s ease,
+    height 0.35s ease,
+    top 0.35s ease;
+}
+
+.peek-head.is-cute .peek-eye-left {
+  left: 32.5%;
+  transform: scaleY(0.34) rotate(-12deg);
+}
+
+.peek-head.is-cute .peek-eye-right {
+  right: 32.5%;
+  transform: scaleY(0.34) rotate(12deg);
+}
+
+.peek-head.is-cute .peek-eye::after {
+  opacity: 0;
+}
+
+.peek-head.is-cute .peek-blush {
+  width: 11.5%;
+  top: 24.5%;
+  opacity: 1;
+  transform: scale(1.55);
+  animation: none;
+  background: #ff6b78;
+  filter: blur(0.4px);
+  box-shadow: 0 0 12px rgba(255, 107, 120, 0.45);
+}
+
+.peek-head.is-cute .peek-blush-left {
+  left: 16%;
+}
+
+.peek-head.is-cute .peek-blush-right {
+  right: 16%;
+}
+
+/* 볼 바람 넣은 느낌 — 양옆 볼 융기 */
+.peek-head.is-cute::before,
+.peek-head.is-cute::after {
+  content: "";
+  position: absolute;
+  top: 28%;
+  width: 18%;
+  height: 16%;
+  border-radius: 50%;
+  background: inherit;
+  filter: brightness(1.02);
+  box-shadow: inset -6% 0 10% rgba(0, 0, 0, 0.06);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.peek-head.is-cute::before {
+  left: -2%;
+  transform: scale(1.15);
+}
+
+.peek-head.is-cute::after {
+  right: -2%;
+  transform: scale(1.15);
+  box-shadow: inset 6% 0 10% rgba(0, 0, 0, 0.06);
+}
+
+/* 행복 — 미소 눈 */
+.peek-stage.is-happy {
+  transition: transform 0.4s ease;
+  transform: scale(1.03);
+}
+
+.peek-head.is-happy .peek-eye {
+  transform: scaleY(0.22);
+}
+
+.peek-head.is-happy .peek-eye::after {
+  opacity: 0;
+}
+
+.peek-head.is-happy .peek-blush {
+  opacity: 0.95;
+  transform: scale(1.2);
+  animation: none;
+}
+
+.peek-stage.is-compact {
+  transform: none;
+}
+
+.peek-stage.is-compact .peek-eye::after {
+  transition: none;
+  transform: translate(-50%, -50%);
+}
+
+.peek-stage.is-compact .peek-head.is-cute .peek-eye-left,
+.peek-stage.is-compact .peek-head.is-cute .peek-eye-right,
+.peek-stage.is-compact .peek-head.is-happy .peek-eye,
+.peek-stage.is-compact .peek-head.is-blink .peek-eye {
+  transform: none;
+  width: 6%;
+  height: 6%;
+  top: 18.5%;
+}
+
+.peek-stage.is-compact .peek-head.is-cute::before,
+.peek-stage.is-compact .peek-head.is-cute::after,
+.peek-stage.is-compact .peek-head.is-cute .peek-blush {
+  display: none;
+}
+
+.peek-blush {
+  position: absolute;
+  top: 27%;
+  width: 5.5%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ff8f8f;
+  opacity: 0.55;
+  animation: peek-blush 3.8s ease-in-out infinite;
+}
+
+.peek-blush-left {
+  left: 25%;
+}
+
+.peek-blush-right {
+  right: 25%;
+  animation-delay: 0.35s;
+}
+
+/* 공통 귀 — 머리 위로 삐져나오게 */
+.peek-ear {
+  position: absolute;
+  top: -5.5%;
+  width: 17%;
+  height: 17%;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.peek-ear-left {
+  left: 18%;
+}
+
+.peek-ear-right {
+  right: 18%;
+}
+
+/* 곰 */
+.peek-bear {
+  background:
+    radial-gradient(circle at 35% 18%, #d4a574 0%, #c48a55 48%, #a86f3d 100%);
+  box-shadow: inset 0 8% 14% rgba(255, 255, 255, 0.18);
+}
+
+.peek-bear .peek-ear {
+  background: #c48a55;
+  box-shadow: inset 0 0 0 22% #e8b888;
+}
+
+.peek-bear-snout {
+  position: absolute;
+  left: 50%;
+  top: 26%;
+  width: 15%;
+  height: 11%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #e8c9a8;
+}
+
+.peek-bear-nose {
+  position: absolute;
+  left: 50%;
+  top: 27%;
+  width: 4.8%;
+  height: 3.6%;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 45% 45%;
+  background: #2a2118;
+}
+
+.peek-bear-nose::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 85%;
+  width: 18%;
+  height: 55%;
+  transform: translateX(-50%);
+  background: #2a2118;
+  border-radius: 0 0 2px 2px;
+}
+
+/* 판다 */
+.peek-panda {
+  background:
+    radial-gradient(circle at 35% 18%, #e5e7eb 0%, #d1d5db 48%, #b8bec8 100%);
+  box-shadow: inset 0 8% 14% rgba(255, 255, 255, 0.28);
+}
+
+.peek-panda .peek-ear {
+  background: #1a1a1a;
+  box-shadow: inset 0 0 0 20% #2e2e2e;
+}
+
+.peek-panda-patch {
+  position: absolute;
+  top: 14%;
+  width: 14%;
+  height: 16%;
+  border-radius: 50%;
+  background: #1a1a1a;
+  z-index: 1;
+}
+
+.peek-panda-patch-left {
+  left: 28%;
+  transform: rotate(-12deg);
+}
+
+.peek-panda-patch-right {
+  right: 28%;
+  transform: rotate(12deg);
+}
+
+.peek-panda .peek-eye {
+  z-index: 2;
+  background: #eef2f7;
+}
+
+.peek-panda-nose {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  width: 4.6%;
+  height: 3.4%;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 45% 45%;
+  background: #1a1a1a;
+  z-index: 2;
+}
+
+.peek-panda-nose::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 90%;
+  width: 22%;
+  height: 60%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  border-radius: 0 0 2px 2px;
+}
+
+/* 네모 캐릭터 공통 — 화면을 더 채움 */
+.peek-head.peek-alpaca,
+.peek-head.peek-pig,
+.peek-head.peek-giraffe {
+  --head: min(112vw, 136vh);
+  width: var(--head);
+  height: var(--head);
+  border-radius: 11%;
+  bottom: calc(var(--head) * -0.4);
+}
+
+.peek-stage.is-compact .peek-alpaca,
+.peek-stage.is-compact .peek-pig,
+.peek-stage.is-compact .peek-giraffe {
+  --head: 142cqmin;
+  width: var(--head);
+  height: var(--head);
+  border-radius: 12%;
+  bottom: calc(var(--head) * -0.32);
+}
+
+/* 알파카 — 네모난 얼굴 */
+.peek-head.peek-alpaca {
+  background:
+    linear-gradient(180deg, #fff6e8 0%, #f3e2c6 48%, #e4cba4 100%);
+  box-shadow: inset 0 6% 12% rgba(255, 255, 255, 0.3);
+}
+
+.peek-alpaca-ear {
+  position: absolute;
+  top: -10%;
+  width: 10%;
+  height: 16%;
+  background: #ead4b0;
+  border-radius: 22%;
+  box-shadow: inset 0 0 0 22% #f7e6c8;
+  z-index: 0;
+}
+
+.peek-alpaca-ear-left {
+  left: 16%;
+  transform: rotate(-10deg);
+}
+
+.peek-alpaca-ear-right {
+  right: 16%;
+  transform: rotate(10deg);
+}
+
+.peek-alpaca-bangs {
+  position: absolute;
+  left: 50%;
+  top: -4%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.6%;
+  width: 24%;
+  height: 11%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.peek-alpaca-bang {
+  display: block;
+  width: 30%;
+  height: 78%;
+  background: #f7ead4;
+  border-radius: 22%;
+  box-shadow: inset 0 -16% 0 rgba(0, 0, 0, 0.04);
+}
+
+.peek-alpaca-bang:nth-child(1),
+.peek-alpaca-bang:nth-child(3) {
+  height: 68%;
+}
+
+.peek-alpaca-bang:nth-child(2) {
+  width: 34%;
+  height: 100%;
+}
+
+.peek-alpaca .peek-eye,
+.peek-alpaca .peek-blush {
+  z-index: 2;
+  border-radius: 26%;
+}
+
+.peek-alpaca .peek-eye::after {
+  border-radius: 28%;
+}
+
+.peek-alpaca-snout {
+  position: absolute;
+  left: 50%;
+  top: 24.5%;
+  width: 13%;
+  height: 10%;
+  transform: translateX(-50%);
+  border-radius: 22%;
+  background: #f6d7b4;
+  z-index: 2;
+}
+
+.peek-alpaca-snout::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: 30%;
+  height: 34%;
+  transform: translateX(-50%);
+  border-radius: 24%;
+  background: #3a2614;
+}
+
+.peek-alpaca-snout::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 14%;
+  height: 28%;
+  transform: translateX(-50%);
+  background: #3a2614;
+  border-radius: 0 0 2px 2px;
+}
+
+.peek-alpaca.is-cute::before,
+.peek-alpaca.is-cute::after {
+  border-radius: 24%;
+}
+
+/* 하늘색 코끼리 */
+.peek-elephant {
+  background:
+    radial-gradient(circle at 35% 18%, #9ad7ff 0%, #6ec1f5 48%, #4aa8e8 100%);
+  box-shadow: inset 0 8% 14% rgba(255, 255, 255, 0.28);
+}
+
+.peek-elephant-ear {
+  width: 22%;
+  height: 20%;
+  top: -2%;
+  background: #6ec1f5;
+  box-shadow: inset 0 0 0 18% #b8e4ff;
+}
+
+.peek-elephant-ear.peek-ear-left {
+  left: 8%;
+  border-radius: 55% 45% 50% 50%;
+}
+
+.peek-elephant-ear.peek-ear-right {
+  right: 8%;
+  border-radius: 45% 55% 50% 50%;
+}
+
+.peek-elephant-trunk {
+  position: absolute;
+  left: 50%;
+  top: 26%;
+  width: 9%;
+  height: 18%;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(180deg, #7ec8f8 0%, #5bb4ef 55%, #4aa8e8 100%);
+  border-radius: 45% 45% 40% 40% / 30% 30% 55% 55%;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+  z-index: 2;
+}
+
+.peek-elephant-trunk::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  width: 42%;
+  height: 10%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.peek-elephant-trunk::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  width: 70%;
+  height: 18%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #3d96d6;
+}
+
+/* 돼지 — 네모난 얼굴 */
+.peek-head.peek-pig {
+  background:
+    linear-gradient(180deg, #ffc4d4 0%, #f59ab0 48%, #e87a94 100%);
+  box-shadow: inset 0 6% 12% rgba(255, 255, 255, 0.26);
+}
+
+.peek-pig-ear {
+  position: absolute;
+  top: -7%;
+  width: 14%;
+  height: 14%;
+  background: #f59ab0;
+  border-radius: 22%;
+  box-shadow: inset 0 0 0 22% #ffc4d4;
+  z-index: 0;
+}
+
+.peek-pig-ear-left {
+  left: 10%;
+  transform: rotate(-8deg);
+}
+
+.peek-pig-ear-right {
+  right: 10%;
+  transform: rotate(8deg);
+}
+
+.peek-pig .peek-eye,
+.peek-pig .peek-blush {
+  z-index: 2;
+  border-radius: 26%;
+}
+
+.peek-pig .peek-eye::after {
+  border-radius: 28%;
+}
+
+.peek-pig-snout {
+  position: absolute;
+  left: 50%;
+  top: 23.5%;
+  width: 18%;
+  height: 13%;
+  transform: translateX(-50%);
+  border-radius: 22%;
+  background: #ffc4d0;
+  box-shadow: inset 0 -10% 0 rgba(0, 0, 0, 0.05);
+  z-index: 2;
+}
+
+.peek-pig-snout::before,
+.peek-pig-snout::after {
+  content: "";
+  position: absolute;
+  top: 30%;
+  width: 18%;
+  height: 28%;
+  border-radius: 24%;
+  background: #c45a72;
+}
+
+.peek-pig-snout::before {
+  left: 24%;
+}
+
+.peek-pig-snout::after {
+  right: 24%;
+}
+
+.peek-pig.is-cute::before,
+.peek-pig.is-cute::after {
+  border-radius: 24%;
+}
+
+/* 기린 — 네모난 두부 얼굴 */
+.peek-head.peek-giraffe {
+  background:
+    linear-gradient(180deg, #ffe27a 0%, #f4c14e 48%, #e0a32e 100%);
+  box-shadow: inset 0 6% 12% rgba(255, 255, 255, 0.22);
+}
+
+.peek-giraffe-ear {
+  width: 13%;
+  height: 13%;
+  top: -7%;
+  border-radius: 22%;
+  background: #f0b63c;
+  box-shadow: inset 0 0 0 22% #ffd27a;
+}
+
+.peek-giraffe-ear.peek-ear-left {
+  left: 10%;
+  transform: rotate(-8deg);
+}
+
+.peek-giraffe-ear.peek-ear-right {
+  right: 10%;
+  transform: rotate(8deg);
+}
+
+.peek-giraffe-ossicone {
+  position: absolute;
+  top: -9%;
+  width: 6%;
+  height: 11%;
+  border-radius: 22%;
+  background:
+    linear-gradient(180deg, #4a2e16 0 30%, #e8b84a 31% 100%);
+  box-shadow: inset 0 -12% 0 rgba(0, 0, 0, 0.06);
+  z-index: 1;
+}
+
+.peek-giraffe-ossicone-left {
+  left: 36%;
+}
+
+.peek-giraffe-ossicone-right {
+  right: 36%;
+}
+
+.peek-giraffe .peek-eye,
+.peek-giraffe .peek-blush {
+  z-index: 2;
+  border-radius: 26%;
+}
+
+.peek-giraffe .peek-eye::after {
+  border-radius: 28%;
+}
+
+.peek-giraffe-spot {
+  position: absolute;
+  border-radius: 22%;
+  background: #b86a22;
+  box-shadow: inset 0 -10% 0 rgba(0, 0, 0, 0.08);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.peek-giraffe-spot-1 {
+  top: 4%;
+  left: 50%;
+  width: 9%;
+  height: 9%;
+  transform: translateX(-50%);
+}
+
+.peek-giraffe-spot-2 {
+  top: 7%;
+  left: 14%;
+  width: 10.5%;
+  height: 10.5%;
+}
+
+.peek-giraffe-spot-3 {
+  top: 6%;
+  right: 13%;
+  width: 10%;
+  height: 10%;
+}
+
+.peek-giraffe-spot-4 {
+  top: 18%;
+  left: 5%;
+  width: 9%;
+  height: 9%;
+}
+
+.peek-giraffe-spot-5 {
+  top: 17%;
+  right: 4%;
+  width: 9.5%;
+  height: 9.5%;
+}
+
+.peek-giraffe-snout {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  width: 18%;
+  height: 13%;
+  transform: translateX(-50%);
+  border-radius: 22%;
+  background: #ffe9b4;
+  z-index: 2;
+}
+
+.peek-giraffe-nose {
+  position: absolute;
+  left: 50%;
+  top: 25.6%;
+  width: 5.4%;
+  height: 4.2%;
+  transform: translateX(-50%);
+  border-radius: 24%;
+  background: #3a2614;
+  z-index: 3;
+}
+
+.peek-giraffe-nose::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 82%;
+  width: 22%;
+  height: 55%;
+  transform: translateX(-50%);
+  background: #3a2614;
+  border-radius: 0 0 2px 2px;
+}
+
+.peek-giraffe.is-cute::before,
+.peek-giraffe.is-cute::after {
+  border-radius: 24%;
+}
+
+@keyframes peek-bob {
+  0%,
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  50% {
+    transform: translate3d(-50%, -10px, 0);
+  }
+}
+
+@keyframes peek-blush {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peek-head,
+  .peek-blush,
+  .peek-stage.is-cute,
+  .peek-stage.is-happy {
+    animation: none;
+    transition: none;
+  }
+
+  .peek-eye::after {
+    transition: none;
+  }
+}

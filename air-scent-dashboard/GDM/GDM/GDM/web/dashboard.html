@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Gas Distribution Map</title>
+<style>
+  :root {
+    --bg-top: #f5f5f7;
+    --bg-bottom: #e8e8ed;
+    --ink: #1d1d1f;
+    --ink-dim: #6e6e73;
+    --card: rgba(255, 255, 255, 0.72);
+    --good: #34c759;
+    --warn: #ff9f0a;
+    --bad: #ff453a;
+    --idle: #a1a1a6;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: radial-gradient(circle at 50% 0%, var(--bg-top), var(--bg-bottom));
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+  header { width: 100%; max-width: 1100px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
+  .titles h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+  .titles p { margin: 4px 0 0; color: var(--ink-dim); font-size: 14px; }
+  a.editor-link {
+    color: var(--ink);
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 999px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.06);
+    border: 1px solid rgba(255,255,255,0.6);
+    white-space: nowrap;
+  }
+  a.editor-link:hover { background: #fff; }
+
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
+    padding: 10px 18px;
+    border-radius: 999px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin-bottom: 26px;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  #mapCard {
+    width: 100%;
+    max-width: 1100px;
+    background: var(--card);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 28px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 24px 60px rgba(0,0,0,0.12);
+    padding: 22px;
+    display: flex;
+    justify-content: center;
+  }
+  #wrap { position: relative; width: 100%; }
+  #wrap img { display: block; width: 100%; height: auto; border-radius: 16px; }
+  #wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .room-poly { stroke: rgba(0,0,0,0.18); stroke-width: 1.5; fill-opacity: 0.28; transition: fill 0.4s ease; }
+
+  .chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 18px;
+    padding: 10px 12px 9px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 10px 22px rgba(0,0,0,0.12);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    white-space: nowrap;
+    width: fit-content;
+    margin: 0 auto;
+  }
+  .chip-room { font-size: 11.5px; font-weight: 600; color: var(--ink-dim); }
+  .chip-icon {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    background: rgba(0,0,0,0.045);
+    margin: 2px 0 1px;
+  }
+  .chip-scent { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .chip-status { font-size: 10.5px; color: var(--ink-dim); display: flex; align-items: center; gap: 4px; }
+  .chip-status .dot { width: 6px; height: 6px; }
+
+  .robot-marker {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(10, 132, 255, 0.92);
+    box-shadow: 0 2px 8px rgba(10,132,255,0.5);
+    font-size: 17px;
+    position: relative;
+  }
+  .robot-marker::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: rgba(10, 132, 255, 0.35);
+    animation: pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse {
+    0%   { transform: scale(0.7); opacity: 0.8; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+
+  #empty {
+    max-width: 480px;
+    text-align: center;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    color: var(--ink-dim);
+    font-size: 14px;
+    display: none;
+  }
+  #empty a { color: #0071e3; font-weight: 600; text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="titles">
+    <h1>Gas Distribution Map</h1>
+    <p>실시간 향 분포 현황</p>
+  </div>
+  <a class="editor-link" href="/editor">방 편집 →</a>
+</header>
+
+<div class="legend">
+  <span><span class="dot" style="background:var(--good)"></span>목표 달성</span>
+  <span><span class="dot" style="background:var(--warn)"></span>발향 중</span>
+  <span><span class="dot" style="background:var(--bad)"></span>다른 향 감지</span>
+  <span><span class="dot" style="background:var(--idle)"></span>미설정 / 대기중</span>
+</div>
+
+<div id="mapCard">
+  <div id="wrap">
+    <img id="bg">
+    <svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
+<div id="empty">아직 확정된 방이 없습니다.<br><a href="/editor">방 편집</a>에서 먼저 방을 확정해주세요.</div>
+
+<script>
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const XHTML_NS = 'http://www.w3.org/1999/xhtml';
+let rooms = [];
+
+const STATUS_COLOR = { good: '#34c759', warn: '#ff9f0a', bad: '#ff453a', idle: '#a1a1a6' };
+
+// custom air-purifier glyph (device body + airflow arcs) instead of relying
+// on an emoji, since no emoji reads clearly as "air purifier" and glyph
+// coverage/rendering varies a lot across platforms
+const PURIFIER_ICON_SVG = `
+  <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="white"
+       stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="4" width="12" height="16" rx="4" fill="white" fill-opacity="0.18"/>
+    <circle cx="12" cy="15" r="1.4" fill="white" stroke="none"/>
+    <path d="M8.5 10.5c2-1.8 5-1.8 7 0"/>
+    <path d="M9.5 8c1.6-1.3 3.4-1.3 5 0"/>
+  </svg>`;
+
+// crude keyword -> emoji mapping so any scent name gets a reasonable glyph
+const ICON_RULES = [
+  [/wood/i, '🌳'],
+  [/citrus|orange|lemon|lime/i, '🍊'],
+  [/floral|flower|rose|blossom/i, '🌸'],
+  [/fresh|air|breeze/i, '🍃'],
+  [/musk/i, '🦌'],
+  [/mint|herb/i, '🌿'],
+  [/fruit|berry|apple|peach/i, '🍓'],
+  [/vanilla|sweet/i, '🍯'],
+  [/ocean|marine|sea|aqua/i, '🌊'],
+  [/spice|spicy|pepper/i, '🌶️'],
+  [/coffee/i, '☕'],
+  [/smoke|leather/i, '🔥'],
+];
+
+function iconFor(scent) {
+  if (!scent) return '❔';
+  const hit = ICON_RULES.find(([re]) => re.test(scent));
+  return hit ? hit[1] : '✨';
+}
+
+function statusKind(room, reading) {
+  if (!room.target_scent) return 'idle';
+  if (!reading || reading.scent == null) return 'idle';
+  if (reading.scent === room.target_scent) {
+    return reading.percent >= (room.target_percent ?? 90) ? 'good' : 'warn';
+  }
+  return 'bad';
+}
+
+function statusLine(room, reading) {
+  if (!room.target_scent) return '목표 미설정';
+  if (!reading || reading.scent == null) return `대기중 · 목표 ${room.target_scent} ${room.target_percent ?? 90}%`;
+  return `${reading.percent ?? '?'}% · 목표 ${room.target_percent ?? 90}%`;
+}
+
+function displayScent(room, reading) {
+  if (reading && reading.scent != null) return reading.scent;
+  if (room.target_scent) return room.target_scent;
+  return null;
+}
+
+function centroidOf(poly) {
+  const n = poly.length;
+  const sx = poly.reduce((s, p) => s + p[0], 0);
+  const sy = poly.reduce((s, p) => s + p[1], 0);
+  return [sx / n, sy / n];
+}
+
+async function loadRooms() {
+  const res = await fetch('/api/rooms/confirmed').then(r => r.json());
+  rooms = res.rooms || [];
+  const hasRooms = rooms.length > 0;
+  document.getElementById('empty').style.display = hasRooms ? 'none' : 'block';
+  document.getElementById('mapCard').style.display = hasRooms ? 'flex' : 'none';
+  if (!hasRooms) return;
+
+  const bg = document.getElementById('bg');
+  bg.onload = () => {
+    document.getElementById('overlay').setAttribute(
+      'viewBox', `0 0 ${bg.naturalWidth} ${bg.naturalHeight}`
+    );
+    render({}, {});
+    poll();
+  };
+  bg.src = '/api/floorplan.png?ts=' + Date.now();
+}
+
+function render(statusByRoom, robotPose) {
+  const svg = document.getElementById('overlay');
+  svg.innerHTML = '';
+
+  rooms.forEach(room => {
+    const poly = room.polygon_px;
+    if (!poly || poly.length < 3) return;
+    const reading = statusByRoom[room.sensor_id];
+    const kind = statusKind(room, reading);
+    const color = STATUS_COLOR[kind];
+
+    const p = document.createElementNS(SVG_NS, 'polygon');
+    p.setAttribute('points', poly.map(pt => pt.join(',')).join(' '));
+    p.setAttribute('class', 'room-poly');
+    p.setAttribute('fill', color);
+    svg.appendChild(p);
+
+    const [cx, cy] = centroidOf(poly);
+    const chipW = 108, chipH = 108;
+    const fo = document.createElementNS(SVG_NS, 'foreignObject');
+    fo.setAttribute('x', cx - chipW / 2);
+    fo.setAttribute('y', cy - chipH / 2);
+    fo.setAttribute('width', chipW);
+    fo.setAttribute('height', chipH);
+    fo.setAttribute('overflow', 'visible');
+
+    const scent = displayScent(room, reading);
+    const div = document.createElementNS(XHTML_NS, 'div');
+    div.setAttribute('class', 'chip');
+    div.innerHTML = `
+      <div class="chip-room">${room.name || room.id}</div>
+      <div class="chip-icon">${iconFor(scent)}</div>
+      <div class="chip-scent">${scent || '—'}</div>
+      <div class="chip-status"><span class="dot" style="background:${color}"></span>${statusLine(room, reading)}</div>`;
+    fo.appendChild(div);
+    svg.appendChild(fo);
+  });
+
+  if (robotPose && robotPose.x_px != null) {
+    const size = 34;
+    const fo = document.createElementNS(SVG_NS, 'foreignObject');
+    fo.setAttribute('x', robotPose.x_px - size / 2);
+    fo.setAttribute('y', robotPose.y_px - size / 2);
+    fo.setAttribute('width', size);
+    fo.setAttribute('height', size);
+    fo.setAttribute('overflow', 'visible');
+    const div = document.createElementNS(XHTML_NS, 'div');
+    div.setAttribute('class', 'robot-marker');
+    div.title = '공기청정기';
+    div.innerHTML = PURIFIER_ICON_SVG;
+    fo.appendChild(div);
+    svg.appendChild(fo);
+  }
+}
+
+async function poll() {
+  try {
+    const [statusByRoom, robotPose] = await Promise.all([
+      fetch('/api/scent/status').then(r => r.json()),
+      fetch('/api/robot/pose').then(r => r.json()),
+    ]);
+    render(statusByRoom, robotPose);
+  } catch (e) {
+    console.error(e);
+  }
+  setTimeout(poll, 1000);
+}
+
+loadRooms();
+</script>
+</body>
+</html>

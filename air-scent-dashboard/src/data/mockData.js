@@ -1,0 +1,27 @@
+export const mockRobotData = {
+  location: "인천대학교",
+  airQuality: 18,
+  airStatus: "공기 좋음",
+  pm25: 8,
+  humidity: 46,
+  temperature: 31.4,
+  gasResistance: 125,
+  currentFragrance: "Woody",
+  fragranceLevel: 54,
+  fragranceRemaining: 64,
+  fragranceCartridgeRemaining: {
+    musk: 72,
+    lavender: 58,
+    woody: 41,
+  },
+  fragranceBlend: {
+    musk: 100,
+    lavender: 0,
+    woody: 0,
+  },
+  robotLocation: "인천대학교",
+  battery: 82,
+  rosConnected: true,
+  arduinoConnected: true,
+  bme688Connected: true,
+};
