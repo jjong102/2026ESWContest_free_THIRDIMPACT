@@ -1,4 +1,4 @@
-# THIRDIMPACT — 실내 공기질 대응 자율주행 향기 로봇
+# THIRDIMPACT — 발향 공기청정기
 
 2026 임베디드 소프트웨어 경진대회 자유공모 출품작 (팀명: **THIRDIMPACT**)
 
@@ -106,12 +106,12 @@ flowchart TB
     UI <--> AIB
 ```
 
-### 2.2 기동 순서 — `all_in_one_launch.py`
+### 2.2 실행 순서 — `all_in_one_launch.py`
 
 센서 초기화와 Nav2 라이프사이클 경합을 피하기 위해 `TimerAction`으로 단계를 벌려
 놓았습니다.
 
-| t (s) | 기동 대상 |
+| t (s) | 실행 대상 |
 |---|---|
 | 0 | 모터 시리얼 · joy · `robot_state_publisher`(URDF) |
 | 1 | `ebimu_publisher` + `robot_localization` EKF |
@@ -259,58 +259,9 @@ sequenceDiagram
 | `amr_navigator/amr_navigator/floor_map_switcher.py` | 층 전환 시 맵 교체 | **본 과제와 무관.** 단일 층 운용 |
 | `amr_navigator/amr_navigator/x_*.py` | 웨이포인트 추종 · 관제센터 연동 | 미사용. 본 과제는 대시보드가 `/goal_pose`로 단일 목표를 직접 지정 |
 | `amr_navigator/params/1F~5F_*.yaml`, `config/waypoints*.yaml` | 타 건물 층별 파라미터 · 웨이포인트 | 이전 프로젝트 자산 |
-| `ebimu_pkg/ebimu_pkg/elevator_floor_node.py` | IMU 기반 층수 추정 | 런치에서 기동되나 출력 토픽 `/current_floor`를 구독하는 노드가 최종 구성에 없음 |
+| `ebimu_pkg/ebimu_pkg/elevator_floor_node.py` | IMU 기반 층수 추정 | 런치에서 실행되나 출력 토픽 `/current_floor`를 구독하는 노드가 최종 구성에 없음 |
 | `ros2_laser_scan_merger` 전체 | 2-LiDAR 스캔 병합 | 검토 후 미채택. Nav2 costmap이 두 스캔을 직접 받는 편이 좌표 변환 오차가 적었음 |
 | `amr/scripts/MotionPlanning/**` | Hybrid A* · MPC · LQR · Stanley 예제 | [zhm-real/MotionPlanning](https://github.com/zhm-real/MotionPlanning) (MIT) 예제. 호출하지 않음. 경로계획은 Nav2 NavFn + DWB 사용 |
 | `amr/scripts/ros2_control_center*.py`, `caster_nmpc.py` | 관제 GUI · NMPC 실험 | 이전 프로젝트 잔여 코드 |
 | `serial_test/serial_test/test_node_main_*.py` 외 변형본 | 모터 제어 실험본 | `setup.py` 진입점은 `test_node_main.py` 하나만 등록 |
 
----
-
-## 7. 빌드 및 실행
-
-### 로봇 (Jetson · Ubuntu 22.04 + ROS 2 Humble)
-
-```bash
-sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup \
-                 ros-humble-robot-localization ros-humble-cartographer-ros \
-                 ros-humble-laser-filters ros-humble-joy
-pip3 install pyserial scikit-learn transforms3d
-
-cd slam_ros
-colcon build --symlink-install
-source install/setup.bash
-
-ros2 launch all_in_one_package all_in_one_launch.py
-```
-
-USB 장치는 udev 고정 심볼릭 링크를 전제로 합니다:
-`/dev/ttyUSB_LIDAR1_FRONT`, `/dev/ttyUSB_LIDAR2_REAR`, `/dev/ttyUSB_IMU`.
-
-맵 생성:
-
-```bash
-ros2 launch amr_cartographer amr_cartographer.launch.py
-ros2 run nav2_map_server map_saver_cli -f <map_name>
-```
-
-### 대시보드 (터치 패널 PC)
-
-```bash
-cd air-scent-dashboard
-npm install
-cp .env.example .env      # NVIDIA_API_KEY 등 입력
-
-npm run dev:all           # 브리지 + Vite 동시 기동
-bash scripts/ros/run_ros_nav_bridge.sh
-npm run kiosk             # Chromium 키오스크
-```
-
-로봇과 대시보드는 CycloneDDS로 같은 `ROS_DOMAIN_ID=3` LAN을 공유합니다.
-
-### 펌웨어
-
-```bash
-cd air-scent-dashboard/firmware/fragrace-controller
-pio run -e uno_opt -t upload
-```
