@@ -1,0 +1,15 @@
+# Secrets — never commit real credentials
+**/secrets.h
+
+# Arduino / build artifacts
+build/
+*.elf
+*.bin
+*.hex
+*.map
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.vs/
