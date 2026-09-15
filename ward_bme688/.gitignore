@@ -13,3 +13,17 @@ build/
 Thumbs.db
 .vscode/
 .vs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Trained models / generated outputs / data dumps
+*.pkl
+*.joblib
+confusion_matrix*.png
+*.bmerawdata
+*.bmelabelinfo
+BME688_Datalogger_Log*.csv
