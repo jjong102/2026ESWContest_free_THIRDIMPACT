@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #define FAN_PIN 2
 
 #define MIST1 3
@@ -20,14 +18,6 @@ int fanMode = 1;
 unsigned long cycleStart = 0;
 unsigned long pauseStart = 0;
 bool inPause = false;
-
-void readCommand();
-void fanOn();
-void fanOff();
-void fanModeChange();
-void setMist(String mistCmd);
-void updateMist();
-void allMistOff();
 
 void setup() {
   Serial.begin(9600);
@@ -95,16 +85,9 @@ void readCommand() {
       int n = cmd.charAt(4) - '0';
 
       if (n == 0) {
-        if (fanIsOn) {
-          fanOff();
-        } else {
-          Serial.println("FAN OFF");
-        }
         fanIsOn = false;
+        Serial.println("FAN OFF");
       } else if (n >= 1 && n <= 3) {
-        if (!fanIsOn) {
-          fanOn();
-        }
         fanIsOn = true;
         fanMode = n;
         Serial.print("FAN ON / MODE ");

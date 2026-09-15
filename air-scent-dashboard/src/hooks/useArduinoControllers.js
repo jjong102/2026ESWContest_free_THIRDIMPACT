@@ -143,6 +143,8 @@ export default function useArduinoControllers({
     mistScale,
   });
   const commandQueueRef = useRef(Promise.resolve());
+  /** 창설시연 등 시퀀스가 직접 제어하는 동안 자동 전송(ON000 등)을 막는다. */
+  const externalControlRef = useRef(false);
   const [arduinoConnected, setArduinoConnected] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [isAirSending, setIsAirSending] = useState(false);
@@ -346,7 +348,11 @@ export default function useArduinoControllers({
       mistScale,
     };
 
-    if (!command || command === lastFragranceSentRef.current) {
+    if (
+      externalControlRef.current ||
+      !command ||
+      command === lastFragranceSentRef.current
+    ) {
       return undefined;
     }
 
@@ -459,7 +465,7 @@ export default function useArduinoControllers({
       return;
     }
 
-    if (!hydrated || syncedOnConnectRef.current) {
+    if (!hydrated || syncedOnConnectRef.current || externalControlRef.current) {
       return;
     }
 
@@ -618,7 +624,53 @@ export default function useArduinoControllers({
     ],
   );
 
+  const setExternalControl = useCallback((active) => {
+    externalControlRef.current = Boolean(active);
+  }, []);
+
+  /** 시퀀스용: 원문 명령을 큐로 보내고 공유 상태도 같이 맞춘다. */
+  const sendControlCommands = useCallback(
+    (commands, stateOverrides = {}) => {
+      if (typeof stateOverrides.airPurifierOn === "boolean") {
+        airStatusRef.current = {
+          ...airStatusRef.current,
+          on: stateOverrides.airPurifierOn,
+        };
+        setAirPurifierOn(stateOverrides.airPurifierOn);
+      }
+      const lines = (commands ?? []).filter(Boolean);
+      lastFragranceSentRef.current = String(lines[lines.length - 1] ?? "");
+      if (lines.length === 0) {
+        return Promise.resolve(null);
+      }
+
+      // 시퀀스가 재부팅 여부를 판단할 수 있게 아두이노 응답(replies)을 그대로 돌려준다.
+      const run = async () => {
+        try {
+          const result = await sendFragranceCommands(
+            lines,
+            snapshotState(stateOverrides),
+          );
+          setArduinoConnected(Boolean(result.connected));
+          rememberRev(result.state);
+          return result;
+        } catch (error) {
+          setArduinoConnected(false);
+          console.warn("[control] send failed", error);
+          return null;
+        }
+      };
+
+      const next = commandQueueRef.current.catch(() => {}).then(run);
+      commandQueueRef.current = next;
+      return next;
+    },
+    [rememberRev, setAirPurifierOn, snapshotState],
+  );
+
   return {
+    setExternalControl,
+    sendControlCommands,
     arduinoConnected,
     reconnectArduino,
     isAirSending,

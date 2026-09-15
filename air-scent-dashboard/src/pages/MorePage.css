@@ -895,6 +895,47 @@
   touch-action: manipulation;
 }
 
+.more-founding-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.more-founding-btn strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.more-founding-btn span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.more-founding-btn.is-active {
+  border-color: #6ee7b7;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.more-founding-btn.is-active span {
+  color: #059669;
+}
+
+.more-founding-btn:active {
+  transform: scale(0.98);
+}
+
 .more-demo-clear.is-active {
   border-color: #fecaca;
   background: #fef2f2;

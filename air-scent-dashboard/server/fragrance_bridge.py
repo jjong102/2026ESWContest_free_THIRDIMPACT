@@ -48,6 +48,18 @@ _last_usb_reset = 0.0
 
 MODE_RE = re.compile(r"FAN(?: ON)? / MODE\s*(\d)|FAN MODE\s*(\d)")
 
+# 미스트 릴레이 극성. 릴레이 모듈이 LOW=ON 이라 POL0 이 맞다.
+# main_opt 펌웨어는 부팅 기본값이 POL1(HIGH=ON)이라, 그대로 두면 "끄기"가 LOW 로 나가
+# 가만히 있어도 향이 계속 나온다. 값은 RAM 에만 남으므로 연결·재부팅 때마다 다시 보낸다.
+# 빈 문자열이면 보내지 않는다.
+MIST_POLARITY_CMD = os.environ.get("ARDUINO_MIST_POLARITY", "POL0").strip().upper()
+# setup() 이 찍는 문구. 명령 응답에 섞여 오면 아두이노가 리셋된 것이다.
+REBOOT_RE = re.compile(r"READY|M133 /")
+
+
+def _looks_rebooted(replies: list[str]) -> bool:
+    return any(REBOOT_RE.search(str(line)) for line in replies)
+
 
 def list_serial_candidates() -> list[str]:
     preferred: list[str] = []
@@ -314,6 +326,7 @@ def _open_serial_locked() -> bool:
         try:
             candidate = _open_serial_candidate(path)
             _wait_until_ready(candidate)
+            _apply_polarity(candidate)
             ser = candidate
             SERIAL_PORT = path
             serial_error = None
@@ -397,6 +410,23 @@ def _read_replies(port, wait_s: float = 1.0) -> list[str]:
     return replies
 
 
+def _write_line(port, line: str) -> list[str]:
+    text = line.strip()
+    port.write(f"{text}\n".encode("utf-8"))
+    port.flush()
+    print(f"[fragrance-bridge] → {text}", file=sys.stderr)
+    return _read_replies(port, 3.6 if text.upper().startswith("OFF") else 1.0)
+
+
+def _apply_polarity(port) -> None:
+    if not MIST_POLARITY_CMD:
+        return
+    try:
+        _write_line(port, MIST_POLARITY_CMD)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[fragrance-bridge] 극성 설정 실패: {exc}", file=sys.stderr)
+
+
 def send_commands(commands: list[str]) -> tuple[bool, list[str]]:
     global ser, serial_error
 
@@ -411,11 +441,13 @@ def send_commands(commands: list[str]) -> tuple[bool, list[str]]:
             ser.timeout = 0.3
             _drain(ser)
             for line in commands:
-                payload = f"{line.strip()}\n".encode("utf-8")
-                ser.write(payload)
-                ser.flush()
-                print(f"[fragrance-bridge] → {line.strip()}", file=sys.stderr)
-                replies.extend(_read_replies(ser, 3.6 if line.strip().upper().startswith("OFF") else 1.0))
+                line_replies = _write_line(ser, line)
+                replies.extend(line_replies)
+                if _looks_rebooted(line_replies):
+                    # 리셋되면 극성이 POL1 로 돌아가고 방금 명령도 사라진다.
+                    print("[fragrance-bridge] 아두이노 재부팅 감지 → 극성 복구 후 재전송", file=sys.stderr)
+                    _apply_polarity(ser)
+                    replies.extend(_write_line(ser, line))
         except Exception as exc:  # noqa: BLE001
             print(f"[fragrance-bridge] write failed: {exc}", file=sys.stderr)
             try:

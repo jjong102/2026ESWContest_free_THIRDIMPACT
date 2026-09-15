@@ -35,7 +35,7 @@ if NIM_MODEL in {
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
 
 MQTT_BROKER = os.environ.get(
-    "MQTT_BROKER", "d8068936862341f4b071c74b052efdf7.s1.eu.hivemq.cloud"
+    "MQTT_BROKER", "e694bf432d234100929a519ed0bbec82.s1.eu.hivemq.cloud"
 )
 MQTT_PORT = int(os.environ.get("MQTT_PORT", "8883"))
 MQTT_USER = os.environ.get("MQTT_USER", "third_impact")

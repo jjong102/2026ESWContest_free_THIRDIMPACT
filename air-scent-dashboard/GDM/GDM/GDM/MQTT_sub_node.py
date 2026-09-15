@@ -26,7 +26,7 @@ class MqttSubNode(Node):
     def __init__(self):
         super().__init__('mqtt_sub_node')
 
-        self.declare_parameter('mqtt_broker', 'd8068936862341f4b071c74b052efdf7.s1.eu.hivemq.cloud')
+        self.declare_parameter('mqtt_broker', 'e694bf432d234100929a519ed0bbec82.s1.eu.hivemq.cloud')
         self.declare_parameter('mqtt_port', 8883)
         self.declare_parameter('mqtt_user', 'third_impact')
         self.declare_parameter('mqtt_pass', 'Ti000000')

@@ -15,6 +15,7 @@ import useOutdoorEnvironment from "./hooks/useOutdoorEnvironment";
 import useScentMission from "./hooks/useScentMission";
 import useScentMissionNav from "./hooks/useScentMissionNav";
 import useOdorResponse from "./hooks/useOdorResponse";
+import useFoundingDemo from "./hooks/useFoundingDemo";
 import { persistWardScent } from "./utils/wardStorage";
 import { clampTargetPercent, resolveMistScale } from "./utils/fragranceIntensity";
 import { mockRobotData } from "./data/mockData";
@@ -201,6 +202,8 @@ function App() {
   );
 
   const {
+    setExternalControl,
+    sendControlCommands,
     arduinoConnected,
     reconnectArduino,
     isAirSending,
@@ -228,6 +231,12 @@ function App() {
     setFragranceDiffusing,
     setFragranceDispenseComplete,
     mistScale,
+  });
+
+  const foundingDemo = useFoundingDemo({
+    mqttAirQuality,
+    sendControlCommands,
+    setExternalControl,
   });
 
   useEffect(() => {
@@ -424,6 +433,7 @@ function App() {
             mqttAirQuality={mqttAirQuality}
             arduinoConnected={arduinoConnected}
             onReconnectArduino={reconnectArduino}
+            foundingDemo={foundingDemo}
           />
         );
 

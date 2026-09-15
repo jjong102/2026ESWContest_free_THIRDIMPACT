@@ -227,6 +227,7 @@ function MorePage({
   mqttAirQuality = null,
   arduinoConnected = false,
   onReconnectArduino,
+  foundingDemo = null,
 }) {
   const [arduinoBusy, setArduinoBusy] = useState(false);
   const [speakerVolume, setSpeakerVolumeState] = useState(80);
@@ -783,6 +784,27 @@ function MorePage({
             >
               {demoBusy ? "처리 중…" : "시연 취소"}
             </button>
+            {foundingDemo ? (
+              <button
+                type="button"
+                className={`more-founding-btn${foundingDemo.armed ? " is-active" : ""}`}
+                aria-pressed={foundingDemo.armed}
+                onClick={foundingDemo.toggle}
+              >
+                <strong>창설시연</strong>
+                <span>
+                  {!foundingDemo.armed
+                    ? "꺼짐 · 눌러서 시작"
+                    : foundingDemo.phase === "purifying"
+                      ? "공기청정 10초"
+                      : foundingDemo.phase === "spraying"
+                        ? `${foundingDemo.sprayLabel ?? ""} 발향 중`
+                        : foundingDemo.phase === "waiting"
+                          ? "완료 · air 대기"
+                          : `scent 20% 이상 대기 (${foundingDemo.percent ?? "-"}%)`}
+                </span>
+              </button>
+            ) : null}
           </section>
         ) : null}
 

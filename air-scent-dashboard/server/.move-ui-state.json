@@ -1,5 +1,5 @@
 {
-  "rev": 1660,
+  "rev": 1684,
   "wards": [
     {
       "id": "room_1",
@@ -21,18 +21,18 @@
   "navGoal": {
     "x": 72.5,
     "y": 21.3,
-    "yaw": 1.2813761291215817,
+    "yaw": 3.141592653589793,
     "dragPx": 0.0
   },
   "isNavigating": false,
-  "navStatus": "SUCCEEDED",
+  "navStatus": "CANCELED",
   "goalStatus": null,
   "xyArrived": false,
   "locStatus": null,
   "mode": "select",
   "poseEstimating": false,
-  "scentMission": true,
+  "scentMission": false,
   "fragranceSpraying": false,
   "fragranceWardId": null,
-  "updatedAt": 1788082030.1984742
+  "updatedAt": 1789480756.3803806
 }
